@@ -232,38 +232,33 @@ def create_validation_plot(grid_size, d, wavelength, save_path):
 # --- 5. Quantitative Metrics ---
 
 def measure_fringe_spacing(intensity_2d, grid_size):
-    """
-    FIXED: Returns spacing in GRID UNITS by mapping indices to Y-coordinates.
-    """
+    """FIXED: Returns spacing in GRID UNITS"""
     if find_peaks is None:
         return np.nan
     
-    # Create coordinate arrays
-    x_coords = np.arange(-grid_size, grid_size, 1)
+    # Create Y-coordinate array
     y_coords = np.arange(-grid_size, grid_size, 1)
     
-    # Find X index for measurement position
+    # Find X position index
+    x_coords = np.arange(-grid_size, grid_size, 1)
     x_position_index = np.argmin(np.abs(x_coords - L_OBSERVATION))
     
     if x_position_index >= intensity_2d.shape[1]:
         return np.nan
     
-    # Extract intensity column at X = L_OBSERVATION
     numerical = intensity_2d[:, x_position_index]
     
-    # Find peak INDICES in the array
+    # Find peaks (returns INDICES)
     peaks, _ = find_peaks(numerical, prominence=numerical.max() * PEAK_PROMINENCE_THRESHOLD)
     
     if len(peaks) < 3:
         return np.nan
     
-    # CRITICAL FIX: Map peak indices to actual Y-coordinates
+    # CRITICAL: Convert indices to Y-coordinates
     peak_y_coordinates = y_coords[peaks]
     
-    # Calculate spacing in GRID UNITS
-    spacings = np.diff(peak_y_coordinates)
-    
-    return np.mean(spacings)
+    # Return spacing in GRID UNITS
+    return np.mean(np.diff(peak_y_coordinates))
 
 def analytical_fringe_spacing_cylindrical(d, wavelength, L):
     """
