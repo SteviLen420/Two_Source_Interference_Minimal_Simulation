@@ -2,18 +2,18 @@
 # Copyright (c) 2025 Stefan Len
 #
 # ===================================================================================
-# Two_Source_Interference_Minimal_Simulation.py (Version 1.1.0)
+# Two_Source_Interference_Minimal_Simulation.py 
 # ===================================================================================
 # Author: Stefan Len
 # Overview:
-#   A fully validated and reproducible computational framework for two-source 
+#   A fully validated and reproducible computational framework for two-source 
 #   wave interference simulation, saving all results to Google Drive.
-#   
-#   1. Auto-mounts Google Drive and installs 'scipy'.
-#   2. Runs main 2D simulation.
-#   3. Generates a validation plot (Numerical vs. Analytical cross-section).
-#   4. Calculates quantitative metrics (Fringe Spacing Error Table).
-#   5. Saves all data, plots, and metadata to a timestamped folder in Drive.
+#   
+#   1. Auto-mounts Google Drive and installs 'scipy'.
+#   2. Runs main 2D simulation.
+#   3. Generates a validation plot (Numerical vs. Analytical cross-section).
+#   4. Calculates quantitative metrics (Fringe Spacing Error Table).
+#   5. Saves all data, plots, and metadata to a timestamped folder in Drive.
 # ===================================================================================
 
 # --- 1. Setup and Library Imports ---
@@ -26,8 +26,25 @@ import sys
 import json 
 # import shutil # Not strictly needed
 
-# Global default parameters
-GRID_HALF_SIZE = 500
+# ===================================================================================
+# --- MASTER CONTROL ---
+# ===================================================================================
+# --- Core Simulation Parameters ---
+GRID_HALF_SIZE = 500          # Half-width of the simulation grid (e.g., 500 creates a 1000x1000 grid)
+MAIN_D = 60                   # Main source separation for the primary 2D plot
+MAIN_WAVELENGTH = 10.0        # Main wavelength for the primary 2D plot
+
+# --- Validation Parameters ---
+# Distance L at which the vertical cross-section is taken for validation.
+L_OBSERVATION = int(GRID_HALF_SIZE * 0.67) 
+# Prominence threshold for detecting intensity peaks (as a fraction of max intensity).
+PEAK_PROMINENCE_THRESHOLD = 0.3
+
+# --- Output and Metadata Parameters ---
+OUTPUT_BASE_FOLDER = 'Interference_Sims' # Name of the main project folder in Drive/local
+CODE_VERSION = '1.1.0'
+# ===================================================================================
+
 
 # --- Scipy Setup for Validation ---
 # FIX 1: Initialize find_peaks at the top level to avoid global/local conflicts.
@@ -78,7 +95,7 @@ def setup_colab_environment():
 def create_output_directory(base_path):
     """Creates a unique, timestamped output directory."""
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    project_dir = os.path.join(base_path, 'Interference_Sims') 
+    project_dir = os.path.join(base_path, OUTPUT_BASE_FOLDER) 
     output_dir = os.path.join(project_dir, f'run_{timestamp}')
     
     os.makedirs(output_dir, exist_ok=True)
@@ -89,15 +106,15 @@ def save_metadata(save_path, grid_size, d, wavelength):
     """Save simulation parameters and run details to a JSON file."""
     metadata = {
         'timestamp': datetime.now().isoformat(),
-        'code_version': '1.1.0', 
+        'code_version': CODE_VERSION, 
         'simulation_parameters': {
             'grid_half_size': grid_size,
             'source_separation_d': d,
             'wavelength': wavelength
         },
         'validation_parameters': {
-            'far_field_distance_L': grid_size, # L is set equal to the grid half-size
-            'peak_detection_prominence_threshold': 0.3
+            'far_field_distance_L': L_OBSERVATION, 
+            'peak_detection_prominence_threshold': PEAK_PROMINENCE_THRESHOLD
         },
         'output_files': [
             '2D_pattern_*.png', 'intensity_data_*.csv', 'validation_comparison_plot.png', 
@@ -216,7 +233,7 @@ def create_validation_plot(grid_size, d, wavelength, save_path):
     
     # Plot
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, 
-                                   gridspec_kw={'height_ratios': [3, 1]})
+                                      gridspec_kw={'height_ratios': [3, 1]})
     
     ax1.plot(y_coords, numerical_norm, 'b-', label='Numerical', linewidth=2)
     ax1.plot(y_coords, analytical, 'r--', label='Analytical Far-Field', linewidth=2)
@@ -238,7 +255,7 @@ def create_validation_plot(grid_size, d, wavelength, save_path):
 
 # --- 5. Quantitative Metrics - FIXED VERSION ---
 
-def measure_fringe_spacing(intensity_2d, grid_size, prominence_threshold=0.3):
+def measure_fringe_spacing(intensity_2d, grid_size):
     """
     FIXED: Measure fringe spacing at X = L_OBSERVATION with correct indexing.
     """
@@ -256,7 +273,7 @@ def measure_fringe_spacing(intensity_2d, grid_size, prominence_threshold=0.3):
     
     numerical = intensity_2d[:, x_position_index]
     
-    peaks, _ = find_peaks(numerical, prominence=numerical.max() * prominence_threshold)
+    peaks, _ = find_peaks(numerical, prominence=numerical.max() * PEAK_PROMINENCE_THRESHOLD)
     
     if len(peaks) < 3:
         return np.nan
@@ -269,7 +286,6 @@ def generate_validation_table(grid_size, save_path):
     print("\n--- Generating Quantitative Validation Table ---")
     
     results = []
-    L_measurement = int(grid_size * 0.67)  # Same as validation plot
     
     test_params = [
         {'d': 40, 'wavelength': 5.0, 'grid_size': grid_size},
@@ -281,10 +297,10 @@ def generate_validation_table(grid_size, save_path):
     for params in test_params:
         _, _, intensity = simulate_interference(**params, save_path=None)
         
-        measured_spacing = measure_fringe_spacing(intensity)
+        measured_spacing = measure_fringe_spacing(intensity, grid_size)
         
-        # FIXED: Use L_measurement instead of grid_size
-        analytical_spacing = params['wavelength'] * L_measurement / params['d']
+        # FIXED: Use L_OBSERVATION from MASTER CONTROL
+        analytical_spacing = params['wavelength'] * L_OBSERVATION / params['d']
         
         if not np.isnan(measured_spacing):
             error = abs(measured_spacing - analytical_spacing) / analytical_spacing * 100
@@ -313,7 +329,7 @@ def generate_validation_table(grid_size, save_path):
     
     with open(summary_filename, 'w') as f:
         f.write("=== Validation Summary ===\n")
-        f.write(f"Measurement Position: X = {L_measurement} (perpendicular to sources)\n")
+        f.write(f"Measurement Position: X = {L_OBSERVATION} (perpendicular to sources)\n")
         f.write(f"Total Test Cases: {len(results)}\n")
         
         if errors:
@@ -335,9 +351,7 @@ def generate_validation_table(grid_size, save_path):
 
 if __name__ == '__main__':
     
-    # Core simulation parameters (Customization Point)
-    MAIN_D = 60
-    MAIN_WAVELENGTH = 10.0
+    # Note: Core parameters are now set in the MASTER CONTROL section at the top.
     
     # 6.1. Setup Environment and Determine Save Path
     is_colab, drive_path = setup_colab_environment()
