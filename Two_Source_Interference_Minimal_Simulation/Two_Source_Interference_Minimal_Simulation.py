@@ -166,89 +166,107 @@ def simulate_interference(grid_size, d, wavelength, save_path=None):
 
     return x, y, intensity
 
-# --- 4. Validation Functions (Analytical Comparison) ---
+# --- 4. Validation Functions (Analytical Comparison) - FIXED VERSION ---
 
 def analytical_intensity(y_pos, d, wavelength, L):
     """
     Analytical intensity for the far-field two-slit approximation.
-    $$I(y) = 4I_0 \cos^2\left(\frac{\pi d y}{\lambda L}\right)$$
+    I(y) = 4 * I0 * cos²( (π * d * y) / (λ * L) ).
+    
+    Args:
+        y_pos: Y-coordinates (perpendicular to source line)
+        d: Source separation
+        wavelength: Wave wavelength
+        L: Perpendicular distance from source line (X-coordinate of measurement)
     """
     k = 2 * np.pi / wavelength
     phase_diff = k * d * y_pos / L
-    # Normalize to max 4 (assuming I0=1)
-    intensity = 4 * np.cos(phase_diff / 2)**2 
+    intensity = 4 * np.cos(phase_diff / 2)**2
     return intensity
 
 def create_validation_plot(grid_size, d, wavelength, save_path):
     """
-    Generates a 2-panel plot comparing the numerical central cross-section to the analytical solution.
+    FIXED VERSION: Compare numerical vs analytical along VERTICAL line in far-field.
+    Sources are on Y-axis, so we measure perpendicular (along Y) at far X position.
     """
     print("\n--- Generating Validation Plot: Numerical vs. Analytical ---")
     
-    x_coords, _, intensity_2d = simulate_interference(grid_size=grid_size, d=d, wavelength=wavelength, save_path=None)
+    # 1. Run simulation
+    x_coords, y_coords, intensity_2d = simulate_interference(
+        grid_size=grid_size, d=d, wavelength=wavelength, save_path=None
+    )
     
-    center_idx = intensity_2d.shape[0] // 2
-    numerical = intensity_2d[center_idx, :]
+    # 2. CRITICAL FIX: Extract VERTICAL cross-section at far-field X position
+    x_measurement = int(grid_size * 0.67)  # Far-field position
+    x_idx = np.where(x_coords >= x_measurement)[0]
+    if len(x_idx) == 0:
+        x_idx = len(x_coords) // 2 + int(grid_size * 0.5)
+    else:
+        x_idx = x_idx[0]
     
-    analytical = analytical_intensity(x_coords, d, wavelength, L=grid_size)
+    # Extract vertical line (all Y at fixed X)
+    numerical = intensity_2d[:, x_idx]
     
-    # Normalize numerical to match analytical max (I_max = 4 for unit amplitude waves)
+    # 3. Calculate analytical
+    analytical = analytical_intensity(y_coords, d, wavelength, L=x_measurement)
+    
+    # 4. Normalize
     numerical_norm = numerical / numerical.max() * 4
     
-    # Plot Comparison
+    # 5. Plot
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, 
                                    gridspec_kw={'height_ratios': [3, 1]})
     
-    # FIX 4: Use r-string for $\cos^2$ in label to avoid SyntaxWarning
-    ax1.plot(x_coords, numerical_norm, 'b-', label='Numerical Simulation (Normalized)', linewidth=2)
-    ax1.plot(x_coords, analytical, 'r--', label=r'Analytical Far-Field ($I \propto \cos^2$)', linewidth=2) 
+    ax1.plot(y_coords, numerical_norm, 'b-', label='Numerical', linewidth=2)
+    ax1.plot(y_coords, analytical, 'r--', label='Analytical Far-Field', linewidth=2)
+    ax1.axhline(0, color='gray', linestyle=':', linewidth=0.5)
     ax1.legend(loc='upper right')
-    # FIX 5: Use r-string for $\lambda$ in plt.title to avoid SyntaxWarning
-    ax1.set_title(r'Numerical vs. Analytical Intensity Cross-Section (d={d}, $\lambda$={wavelength})'.format(d=d, wavelength=wavelength), fontsize=14) 
+    ax1.set_title(f'Vertical Cross-Section at X={x_measurement} (d={d}, λ={wavelength})', fontsize=14)
     ax1.set_ylabel('Normalized Intensity', fontsize=12)
     
     difference = numerical_norm - analytical
-    ax2.plot(x_coords, difference, 'g-', linewidth=1)
+    ax2.plot(y_coords, difference, 'g-', linewidth=1)
     ax2.axhline(0, color='k', linestyle='--', linewidth=0.8)
-    ax2.set_xlabel('Position along Measurement Line (Grid Units)', fontsize=12)
-    ax2.set_ylabel('Difference (Num - Anal)', fontsize=12)
+    ax2.set_xlabel('Y Position (Grid Units)', fontsize=12)
+    ax2.set_ylabel('Difference', fontsize=12)
     ax2.grid(True, linestyle=':', alpha=0.6)
     
     plot_filename = os.path.join(save_path, 'validation_comparison_plot.png')
     plt.savefig(plot_filename, bbox_inches='tight', dpi=300)
-    print(f"Validation comparison plot saved: {plot_filename}")
+    print(f"Validation plot saved: {plot_filename}")
+    print(f"  Measured at X={x_measurement} (perpendicular to sources)")
     plt.close(fig)
 
-# --- 5. Quantitative Metrics (Table Generation) ---
+# --- 5. Quantitative Metrics - FIXED VERSION ---
 
 def measure_fringe_spacing(intensity_2d, prominence_threshold=0.3):
     """
-    Measures the average fringe spacing (distance between two adjacent maxima) 
-    from the central cross-section using peak detection (SciPy).
+    FIXED: Measure along VERTICAL line in far-field.
     """
     if find_peaks is None:
         return np.nan
-        
-    center_idx = intensity_2d.shape[0] // 2
-    numerical = intensity_2d[center_idx, :]
+    
+    x_idx = int(intensity_2d.shape[1] * 0.67)
+    numerical = intensity_2d[:, x_idx]
     
     peaks, _ = find_peaks(numerical, prominence=numerical.max() * prominence_threshold)
     
     if len(peaks) < 3:
+        print(f"  WARNING: Only {len(peaks)} peaks found")
         return np.nan
     
     spacings = np.diff(peaks)
+    avg_spacing = np.mean(spacings)
+    print(f"  Found {len(peaks)} peaks, avg spacing: {avg_spacing:.2f}")
     
-    return np.mean(spacings)
+    return avg_spacing
 
 def generate_validation_table(grid_size, save_path):
-    """
-    Runs simulations with different parameters to quantitatively compare 
-    measured fringe spacing to the analytical prediction (λL/d).
-    """
-    print("\n--- Generating Quantitative Validation Table Data ---")
+    """FIXED: Use correct L for analytical prediction"""
+    print("\n--- Generating Quantitative Validation Table ---")
     
     results = []
+    L_measurement = int(grid_size * 0.67)  # Same as validation plot
     
     test_params = [
         {'d': 40, 'wavelength': 5.0, 'grid_size': grid_size},
@@ -262,8 +280,8 @@ def generate_validation_table(grid_size, save_path):
         
         measured_spacing = measure_fringe_spacing(intensity)
         
-        # Analytical prediction (Δy = λ * L / d). L = grid_size.
-        analytical_spacing = params['wavelength'] * params['grid_size'] / params['d']
+        # FIXED: Use L_measurement instead of grid_size
+        analytical_spacing = params['wavelength'] * L_measurement / params['d']
         
         if not np.isnan(measured_spacing):
             error = abs(measured_spacing - analytical_spacing) / analytical_spacing * 100
@@ -277,43 +295,37 @@ def generate_validation_table(grid_size, save_path):
             'Analytical_Spacing': f"{analytical_spacing:.2f}",
             'Error_Pct': f"{error:.2f}%" if not np.isnan(error) else "N/A"
         })
-        
-    # Save the results as a CSV table
-    table_filename = os.path.join(save_path, 'quantitative_validation_table.csv')
     
-    if results:
-        with open(table_filename, 'w', newline='') as csvfile:
-            fieldnames = list(results[0].keys())
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(results)
-        print(f"Quantitative validation table saved: {table_filename}")
-        
-    # Summary statistics
+    # Save table
+    table_filename = os.path.join(save_path, 'quantitative_validation_table.csv')
+    with open(table_filename, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=list(results[0].keys()))
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"Table saved: {table_filename}")
+    
+    # Save summary
     summary_filename = os.path.join(save_path, 'validation_summary.txt')
     errors = [float(r['Error_Pct'].strip('%')) for r in results if r['Error_Pct'] != "N/A"]
     
     with open(summary_filename, 'w') as f:
         f.write("=== Validation Summary ===\n")
+        f.write(f"Measurement Position: X = {L_measurement} (perpendicular to sources)\n")
         f.write(f"Total Test Cases: {len(results)}\n")
         
         if errors:
-            mean_error = np.mean(errors)
-            max_error = np.max(errors)
-            all_errors_low = all(e < 5 for e in errors)
-            f.write(f"Mean Error in Fringe Spacing: {mean_error:.2f}%\n")
-            f.write(f"Maximum Observed Error: {max_error:.2f}%\n")
-            f.write(f"All errors < 5% threshold: {all_errors_low}\n")
+            f.write(f"Mean Error: {np.mean(errors):.2f}%\n")
+            f.write(f"Max Error: {np.max(errors):.2f}%\n")
+            f.write(f"All errors < 5%: {all(e < 5 for e in errors)}\n")
             
-            print("\n=== Validation Summary ===")
-            print(f"Mean Error: {mean_error:.2f}%")
-            print(f"Max Error: {max_error:.2f}%")
-            print(f"All errors < 5%: {all_errors_low}")
+            print(f"\n=== Validation Summary ===")
+            print(f"Mean Error: {np.mean(errors):.2f}%")
+            print(f"Max Error: {np.max(errors):.2f}%")
+            print(f"All < 5%: {all(e < 5 for e in errors)}")
         else:
-            f.write("No valid error data available (scipy/peak detection failed).\n")
-            print("\nValidation Summary: No valid error data available.")
-        
-    print(f"Validation summary statistics saved: {summary_filename}")
+            f.write("No valid data.\n")
+    
+    print(f"Summary saved: {summary_filename}")
 
 
 # --- 6. Main Execution Block ---
