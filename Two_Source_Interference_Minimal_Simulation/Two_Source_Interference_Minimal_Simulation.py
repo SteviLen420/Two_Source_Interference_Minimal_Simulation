@@ -290,10 +290,10 @@ def generate_validation_table(grid_size, save_path):
     # CRITICAL FIX: Use small d values that satisfy far-field criterion
     # L / (d²/λ) >> 1, where L = 335
     test_params = [
-        {'d': 15, 'wavelength': 5.0, 'grid_size': grid_size},   # d²/λ = 45, L/ratio = 7.4
-        {'d': 20, 'wavelength': 5.0, 'grid_size': grid_size},   # d²/λ = 80, L/ratio = 4.2
-        {'d': 15, 'wavelength': 10.0, 'grid_size': grid_size},  # d²/λ = 22.5, L/ratio = 14.9
-        {'d': 25, 'wavelength': 10.0, 'grid_size': grid_size},  # d²/λ = 62.5, L/ratio = 5.4
+        {'d': MAIN_D, 'wavelength': 5.0, 'grid_size': grid_size},
+        {'d': MAIN_D, 'wavelength': 7.5, 'grid_size': grid_size},
+        {'d': MAIN_D, 'wavelength': 10.0, 'grid_size': grid_size},
+        {'d': MAIN_D, 'wavelength': 12.5, 'grid_size': grid_size},
     ]
     
     for params in test_params:
