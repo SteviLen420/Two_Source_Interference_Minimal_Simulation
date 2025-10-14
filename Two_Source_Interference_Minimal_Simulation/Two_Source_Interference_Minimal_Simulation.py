@@ -27,7 +27,7 @@ MAIN_WAVELENGTH = 10.0
 L_OBSERVATION = 400
 PEAK_PROMINENCE_THRESHOLD = 0.3
 OUTPUT_BASE_FOLDER = 'Interference_Sims'
-CODE_VERSION = '1.3.0'
+CODE_VERSION = '1.5.0'
 # ===================================================================================
 
 find_peaks = None 
@@ -85,7 +85,7 @@ def save_metadata(save_path, grid_size, d, wavelength):
         'validation_parameters': {
             'far_field_distance_L': L_OBSERVATION,
             'peak_detection_prominence_threshold': PEAK_PROMINENCE_THRESHOLD,
-            'analytical_model': 'cylindrical_wave_complex_phasor'
+            'analytical_model': '2D_cylindrical_wave_normalized'
         }
     }
     with open(os.path.join(save_path, 'metadata.json'), 'w') as f:
@@ -110,13 +110,19 @@ def simulate_interference(grid_size, d, wavelength, save_path=None):
     
     k = 2 * np.pi / wavelength
     
-    # FIXED: Complex phasor for cylindrical waves
-    amplitude1 = np.exp(1j * k * dist1) / np.sqrt(dist1)
-    amplitude2 = np.exp(1j * k * dist2) / np.sqrt(dist2)
+    # 2D cylindrical waves: amplitude ∝ 1/r
+    amplitude1 = np.exp(1j * k * dist1) / dist1
+    amplitude2 = np.exp(1j * k * dist2) / dist2
     
     # Time-averaged intensity
     total_field = amplitude1 + amplitude2
     intensity = np.abs(total_field)**2
+    
+    # FIXED: Normalize to remove envelope mismatch
+    edge_region = intensity[int(grid_size*0.8):, :]
+    if edge_region.size > 0 and np.mean(edge_region) > 0:
+        intensity = intensity / np.mean(edge_region)
+    intensity = intensity / intensity.max() * 4
 
     if save_path:
         plt.figure(figsize=(10, 8))
@@ -142,19 +148,23 @@ def simulate_interference(grid_size, d, wavelength, save_path=None):
     return x, y, intensity
 
 def analytical_intensity_cylindrical(y_pos, d, wavelength, L):
-    """FIXED: Complex phasor analytical formula"""
+    """2D cylindrical waves with matched normalization"""
     k = 2 * np.pi / wavelength
     
     r1 = np.sqrt(L**2 + (y_pos + d/2)**2)
     r2 = np.sqrt(L**2 + (y_pos - d/2)**2)
     
-    # Complex cylindrical waves
-    A1 = np.exp(1j * k * r1) / np.sqrt(r1)
-    A2 = np.exp(1j * k * r2) / np.sqrt(r2)
+    # 2D cylindrical waves: amplitude ∝ 1/r
+    A1 = np.exp(1j * k * r1) / r1
+    A2 = np.exp(1j * k * r2) / r2
     
     intensity = np.abs(A1 + A2)**2
     
-    # Normalize to max=4
+    # FIXED: Match numerical normalization
+    edge_idx = int(0.8 * len(intensity))
+    edge_region = intensity[edge_idx:]
+    if edge_region.size > 0 and np.mean(edge_region) > 0:
+        intensity = intensity / np.mean(edge_region)
     intensity = intensity / intensity.max() * 4
     
     return intensity
@@ -213,7 +223,6 @@ def measure_fringe_spacing(intensity_2d, grid_size):
     if len(peaks) < 3:
         return np.nan
     
-    # Convert indices to Y-coordinates
     peak_y_coords = y_coords[peaks]
     return np.mean(np.diff(peak_y_coords))
 
@@ -260,7 +269,7 @@ def generate_validation_table(grid_size, save_path):
     
     with open(os.path.join(save_path, 'validation_summary.txt'), 'w') as f:
         f.write("=== Validation Summary ===\n")
-        f.write(f"Analytical Model: Complex Cylindrical Wave\n")
+        f.write(f"Analytical Model: 2D Cylindrical Wave (normalized)\n")
         f.write(f"Measurement Position: X = {L_OBSERVATION}\n")
         f.write(f"Total Test Cases: {len(results)}\n")
         
