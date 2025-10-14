@@ -27,7 +27,7 @@ import json
 # import shutil # Not strictly needed
 
 # Global default parameters
-GRID_HALF_SIZE = 300
+GRID_HALF_SIZE = 500
 
 # --- Scipy Setup for Validation ---
 # FIX 1: Initialize find_peaks at the top level to avoid global/local conflicts.
