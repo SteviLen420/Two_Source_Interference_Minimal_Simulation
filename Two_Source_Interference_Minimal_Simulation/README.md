@@ -1,7 +1,9 @@
 # Minimal Simulation of Two-Source Wave Interference
 
 **Author:** Stefan Len
+
 **License:** MIT License
+
 **Repository:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 
 ## Overview: Numerical Demonstration of Superposition
