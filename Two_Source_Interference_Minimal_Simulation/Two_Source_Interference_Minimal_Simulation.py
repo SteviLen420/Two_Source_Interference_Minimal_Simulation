@@ -282,16 +282,18 @@ def measure_fringe_spacing(intensity_2d, grid_size):
     return np.mean(spacings)
 
 def generate_validation_table(grid_size, save_path):
-    """FIXED: Use correct L for analytical prediction"""
+    """FIXED: Use far-field compatible test parameters"""
     print("\n--- Generating Quantitative Validation Table ---")
     
     results = []
     
+    # CRITICAL FIX: Use small d values that satisfy far-field criterion
+    # L / (d²/λ) >> 1, where L = 335
     test_params = [
-        {'d': 40, 'wavelength': 5.0, 'grid_size': grid_size},
-        {'d': 60, 'wavelength': 5.0, 'grid_size': grid_size},
-        {'d': 40, 'wavelength': 10.0, 'grid_size': grid_size},
-        {'d': 80, 'wavelength': 10.0, 'grid_size': grid_size},
+        {'d': 15, 'wavelength': 5.0, 'grid_size': grid_size},   # d²/λ = 45, L/ratio = 7.4
+        {'d': 20, 'wavelength': 5.0, 'grid_size': grid_size},   # d²/λ = 80, L/ratio = 4.2
+        {'d': 15, 'wavelength': 10.0, 'grid_size': grid_size},  # d²/λ = 22.5, L/ratio = 14.9
+        {'d': 25, 'wavelength': 10.0, 'grid_size': grid_size},  # d²/λ = 62.5, L/ratio = 5.4
     ]
     
     for params in test_params:
@@ -299,7 +301,7 @@ def generate_validation_table(grid_size, save_path):
         
         measured_spacing = measure_fringe_spacing(intensity, grid_size)
         
-        # FIXED: Use L_OBSERVATION from MASTER CONTROL
+        # Use L_OBSERVATION from MASTER CONTROL
         analytical_spacing = params['wavelength'] * L_OBSERVATION / params['d']
         
         if not np.isnan(measured_spacing):
