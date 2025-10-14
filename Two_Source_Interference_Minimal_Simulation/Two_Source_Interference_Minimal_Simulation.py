@@ -186,42 +186,42 @@ def analytical_intensity(y_pos, d, wavelength, L):
 
 def create_validation_plot(grid_size, d, wavelength, save_path):
     """
-    FIXED VERSION: Compare numerical vs analytical along VERTICAL line in far-field.
-    Sources are on Y-axis, so we measure perpendicular (along Y) at far X position.
+    Generates a 2-panel plot comparing the far-field cross-section.
+    FIXED: Correct array indexing using np.argmin.
     """
     print("\n--- Generating Validation Plot: Numerical vs. Analytical ---")
     
-    # 1. Run simulation
     x_coords, y_coords, intensity_2d = simulate_interference(
         grid_size=grid_size, d=d, wavelength=wavelength, save_path=None
     )
     
-    # 2. CRITICAL FIX: Extract VERTICAL cross-section at far-field X position
-    x_measurement = int(grid_size * 0.67)  # Far-field position
-    x_idx = np.where(x_coords >= x_measurement)[0]
-    if len(x_idx) == 0:
-        x_idx = len(x_coords) // 2 + int(grid_size * 0.5)
-    else:
-        x_idx = x_idx[0]
+    # CRITICAL FIX: Find correct array index for X = L_OBSERVATION
+    x_position_index = np.argmin(np.abs(x_coords - L_OBSERVATION))
+    
+    if x_position_index >= intensity_2d.shape[1]:
+        print(f"ERROR: L_OBSERVATION={L_OBSERVATION} is outside grid bounds.")
+        return
+    
+    actual_x_position = x_coords[x_position_index]
+    print(f"  Measuring at X = {actual_x_position:.1f} (target: {L_OBSERVATION})")
     
     # Extract vertical line (all Y at fixed X)
-    numerical = intensity_2d[:, x_idx]
+    numerical = intensity_2d[:, x_position_index]
     
-    # 3. Calculate analytical
-    analytical = analytical_intensity(y_coords, d, wavelength, L=x_measurement)
+    # Calculate analytical
+    analytical = analytical_intensity(y_coords, d, wavelength, L=actual_x_position)
     
-    # 4. Normalize
+    # Normalize
     numerical_norm = numerical / numerical.max() * 4
     
-    # 5. Plot
+    # Plot
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, 
                                    gridspec_kw={'height_ratios': [3, 1]})
     
     ax1.plot(y_coords, numerical_norm, 'b-', label='Numerical', linewidth=2)
     ax1.plot(y_coords, analytical, 'r--', label='Analytical Far-Field', linewidth=2)
-    ax1.axhline(0, color='gray', linestyle=':', linewidth=0.5)
     ax1.legend(loc='upper right')
-    ax1.set_title(f'Vertical Cross-Section at X={x_measurement} (d={d}, λ={wavelength})', fontsize=14)
+    ax1.set_title(f'Cross-Section at X={actual_x_position:.0f} (d={d}, λ={wavelength})', fontsize=14)
     ax1.set_ylabel('Normalized Intensity', fontsize=12)
     
     difference = numerical_norm - analytical
@@ -234,32 +234,35 @@ def create_validation_plot(grid_size, d, wavelength, save_path):
     plot_filename = os.path.join(save_path, 'validation_comparison_plot.png')
     plt.savefig(plot_filename, bbox_inches='tight', dpi=300)
     print(f"Validation plot saved: {plot_filename}")
-    print(f"  Measured at X={x_measurement} (perpendicular to sources)")
     plt.close(fig)
 
 # --- 5. Quantitative Metrics - FIXED VERSION ---
 
-def measure_fringe_spacing(intensity_2d, prominence_threshold=0.3):
+def measure_fringe_spacing(intensity_2d, grid_size, prominence_threshold=0.3):
     """
-    FIXED: Measure along VERTICAL line in far-field.
+    FIXED: Measure fringe spacing at X = L_OBSERVATION with correct indexing.
     """
     if find_peaks is None:
         return np.nan
     
-    x_idx = int(intensity_2d.shape[1] * 0.67)
-    numerical = intensity_2d[:, x_idx]
+    # Recreate coordinate array
+    x_coords = np.arange(-grid_size, grid_size, 1)
+    
+    # Find correct index
+    x_position_index = np.argmin(np.abs(x_coords - L_OBSERVATION))
+    
+    if x_position_index >= intensity_2d.shape[1]:
+        return np.nan
+    
+    numerical = intensity_2d[:, x_position_index]
     
     peaks, _ = find_peaks(numerical, prominence=numerical.max() * prominence_threshold)
     
     if len(peaks) < 3:
-        print(f"  WARNING: Only {len(peaks)} peaks found")
         return np.nan
     
     spacings = np.diff(peaks)
-    avg_spacing = np.mean(spacings)
-    print(f"  Found {len(peaks)} peaks, avg spacing: {avg_spacing:.2f}")
-    
-    return avg_spacing
+    return np.mean(spacings)
 
 def generate_validation_table(grid_size, save_path):
     """FIXED: Use correct L for analytical prediction"""
