@@ -10,9 +10,6 @@
 #   CRITICAL FIX: Uses correct cylindrical wave analytical formula for validation.
 # ===================================================================================
 
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2025 Stefan Len
-
 import numpy as np
 import matplotlib.pyplot as plt
 import os
