@@ -30,13 +30,13 @@ import json
 # --- MASTER CONTROL ---
 # ===================================================================================
 # --- Core Simulation Parameters ---
-GRID_HALF_SIZE = 500          # Half-width of the simulation grid (e.g., 500 creates a 1000x1000 grid)
+GRID_HALF_SIZE = 1000          # Half-width of the simulation grid (e.g., 500 creates a 1000x1000 grid)
 MAIN_D = 20                   # Main source separation for the primary 2D plot
 MAIN_WAVELENGTH = 10.0        # Main wavelength for the primary 2D plot
 
 # --- Validation Parameters ---
 # Distance L at which the vertical cross-section is taken for validation.
-L_OBSERVATION = int(GRID_HALF_SIZE * 0.67) 
+L_OBSERVATION = 700
 # Prominence threshold for detecting intensity peaks (as a fraction of max intensity).
 PEAK_PROMINENCE_THRESHOLD = 0.3
 
