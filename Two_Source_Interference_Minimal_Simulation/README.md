@@ -1,5 +1,9 @@
 # Numerical Validation of Two-Source Wave Interference: A Reproducible Computational Framework
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![arXiv](https://img.shields.io/badge/arXiv-physics.comp--ph-b31b1b.svg)](https://arxiv.org/)
+
 **Author:** Stefan Len  
 **Version:** 1.1.0  
 **License:** MIT License  
