@@ -1,95 +1,96 @@
-Minimal Simulation of Two-Source Wave Interference
-Author: Stefan Len
+# Minimal Simulation of Two-Source Wave Interference
 
-License: MIT License
+**Author:** Stefan Len
+**License:** MIT License
+**Repository:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 
-Overview
-This repository contains the Python source code for a minimal numerical simulation of the classic two-source wave interference pattern. I developed this script as a reproducible and pedagogical tool to visually demonstrate the principle of superposition.
+## Overview: Numerical Demonstration of Superposition
 
-The code is designed to be lightweight, easy to run, and serves as the supplementary material for my corresponding submission to the physics.gen-ph category on arXiv. The pipeline is fully automated, handling environment setup (for Google Colab) and organizing all outputs into timestamped directories for clarity and reproducibility.
+This repository contains a concise **Python source code** designed for a minimal numerical simulation of the classic **two-source wave interference pattern**.
 
-Features
-Minimalist & Focused: The simulation focuses solely on the core physics of wave superposition without unnecessary complexity.
+The primary purpose of this script is to serve as a **reproducible** and **pedagogical tool** to visually and quantitatively demonstrate the principle of **wave superposition**. It calculates the resulting intensity field when two coherent point sources radiate waves across a two-dimensional grid.
 
-Google Colab Ready: The script automatically detects a Colab environment, mounts Google Drive, and handles dependencies. This is the recommended way to ensure perfect reproducibility.
+## Key Features
 
-Automated Output Management: All generated files (plots and raw data) are saved into a unique, timestamped directory (run_YYYYMMDD_HHMMSS) to prevent overwriting results from different runs.
+The simulation pipeline is engineered for efficiency and robust output management:
 
-Data Export: The simulation saves not only the visual interference pattern as a high-quality PNG image but also the underlying raw intensity data as a CSV file for further analysis.
+* **Minimalist & Focused Physics:** The implementation focuses strictly on the core physics of wave superposition ($A_{total} = A_1 + A_2$) and intensity calculation ($I \propto A_{total}^2$), ensuring clarity without unnecessary computational complexity.
+* **Google Colab Ready:** The script includes an automated routine to detect the Google Colab environment. When executed in Colab, it automatically mounts **Google Drive** and ensures all required dependencies are met.
+* **Automated Output Management:** For maximal **reproducibility**, all output files (plots and raw data) are saved into a unique, timestamped directory to prevent data corruption or overwriting. The structure is: `MyDrive/Interference_Sims/run_YYYYMMDD_HHMMSS/`.
+* **Comprehensive Data Export:** The simulation saves both the visual result (PNG) and the underlying numerical data (CSV), facilitating independent validation and further post-processing.
 
-Requirements
-To run this simulation, you will need:
+## Requirements
 
-Python 3.x
+The simulation relies on standard scientific Python libraries:
 
-NumPy
+* **Python 3.x**
+* **NumPy** (for array and mathematical operations)
+* **Matplotlib** (for visualization)
 
-Matplotlib
+These dependencies are typically pre-installed in Google Colab, making it the most seamless execution environment.
 
-If you use the Google Colab environment, these dependencies are pre-installed, and the script will handle everything for you.
+## Usage Instructions
 
-Usage Instructions
-I have designed the code to be executable in two primary ways: via Google Colab (recommended for ease of use) or on a local machine.
+The code is configured for two main execution methods, prioritizing ease of use through Google Colab.
 
-Option 1: Running in Google Colab (Recommended)
-This is the simplest method to replicate my results.
+### **Option 1: Running in Google Colab (Recommended)**
 
-Open in Colab: Navigate to the Two_Source_Interference_Minimal_Simulation.py file in this repository and open it directly in Google Colab.
+This method is highly recommended for straightforward execution and perfect reproducibility, as the environment setup is fully automated.
 
-Run the Script: Run the entire script (from the "Runtime" menu, select "Run all").
+1.  **Open in Colab:** Navigate to the `Two_Source_Interference_Minimal_Simulation.py` file and open it directly in a Google Colab notebook.
+2.  **Execute the Script:** Run the entire notebook (via the "Runtime" menu $\to$ "Run all").
+3.  **Authorize Google Drive:** You will be prompted once to authorize Colab to access your Google Drive. This is mandatory for the automated saving of the output files.
+4.  **Retrieve Results:** Upon completion, all generated plots and data files will be organized and saved in your Google Drive at the following path:
+    `MyDrive/Interference_Sims/run_YYYYMMDD_HHMMSS/`
 
-Authorize Google Drive: The first time you run it, you will be prompted to authorize Colab to access your Google Drive. Please follow the on-screen instructions. This is necessary for saving the output files.
+### **Option 2: Running Locally**
 
-Find the Results: After the simulation completes, all outputs will be saved in a new folder within your Google Drive at the following path: MyDrive/Interference_Sims/run_YYYYMMDD_HHMMSS/.
+To execute the simulation on a local machine (requires the Python dependencies listed above):
 
-Option 2: Running Locally
-If you prefer to run the simulation on your own machine:
+1.  **Clone the Repository:**
+    ```bash
+    git clone [https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation.git](https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation.git)
+    ```
+2.  **Navigate and Run:**
+    ```bash
+    cd Two_Source_Interference_Minimal_Simulation
+    python Two_Source_Interference_Minimal_Simulation.py
+    ```
+3.  **Find the Results:** The outputs will be saved to a similar timestamped directory structure in your local project folder: `./Interference_Sims/run_YYYYMMDD_HHMMSS/`
 
-Clone the Repository: Open a terminal and clone this repository to your local machine using git:
+## Output Files
 
-Bash
+Each successful simulation generates two critical files within the run directory:
 
-git clone https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation.git
-Navigate to the Directory:
+| Filename | Description | Content |
+| :--- | :--- | :--- |
+| **interference\_pattern.png** | **High-Resolution Plot** | A $300 \text{ DPI}$ image visualizing the calculated wave intensity. This figure clearly illustrates the constructive and destructive interference fringes. |
+| **intensity\_data.csv** | **Raw Numerical Data** | A Comma-Separated Values file containing the full $N \times N$ numerical matrix of the intensity values across the simulation grid. This allows for independent analysis and data manipulation. |
 
-Bash
+## Customizing Physical Parameters
 
-cd Two_Source_Interference_Minimal_Simulation
-Run the Python Script: Execute the script from your terminal:
+The core physical setup can be modified directly within the `if __name__ == '__main__':` block at the end of the script, allowing for direct exploration of the interference phenomenon:
 
-Bash
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `grid_size` | *int* | Defines the half-size of the simulation area. A larger value increases both the domain size and computational resolution. |
+| `d` | *int* | The distance (in grid units) separating the two point wave sources. |
+| `wavelength` | *float* | The wavelength ($\lambda$) of the coherent waves. |
 
-python Two_Source_Interference_Minimal_Simulation.py
-Find the Results: The script will create a new directory named Interference_Sims in the same folder. Inside, you will find a timestamped sub-directory (run_...) containing the output files.
+By changing these input variables, one can observe the direct impact of source separation and wavelength on the resulting interference fringe spacing and pattern geometry.
 
-Output Files
-For each simulation run, two files are generated:
+## How to Cite
 
-interference_pattern.png: A high-resolution (300 DPI) image visualizing the calculated wave intensity. This plot clearly shows the constructive and destructive interference fringes.
+If you utilize this code or its generated results in any publication, teaching materials, or research project, proper citation is requested.
 
+Please cite the GitHub repository directly:
 
-Shutterstock
-intensity_data.csv: A CSV file containing the raw numerical matrix of the intensity values for every point on the simulation grid. This allows for independent analysis and replotting of the data.
-
-Customizing the Simulation
-You can easily modify the physical parameters of the simulation by editing the following variables in the if __name__ == '__main__': block at the end of the script:
-
-grid_size: An integer that defines the half-size of the simulation area. A larger value results in a larger area and higher resolution.
-
-d: The distance (in grid units) separating the two wave sources.
-
-wavelength: The wavelength (λ) of the waves.
-
-Changing these parameters will directly affect the resulting interference pattern, allowing for interactive exploration of the phenomenon.
-
-How to Cite
-If you use this code or the results in your research, I would appreciate a citation. Please cite the GitHub repository directly. Once the corresponding arXiv paper is published, I will update this section with the formal citation information.
-
+```bibtex
 @misc{Len_Interference_Sim_2025,
   author = {Stefan Len},
   title = {A Minimal Python Simulation of Two-Source Wave Interference},
   year = {2025},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation}}
+  howpublished = {\url{[https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation](https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation)}}
 }
