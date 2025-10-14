@@ -31,7 +31,7 @@ import json
 # ===================================================================================
 # --- Core Simulation Parameters ---
 GRID_HALF_SIZE = 500          # Half-width of the simulation grid (e.g., 500 creates a 1000x1000 grid)
-MAIN_D = 60                   # Main source separation for the primary 2D plot
+MAIN_D = 20                   # Main source separation for the primary 2D plot
 MAIN_WAVELENGTH = 10.0        # Main wavelength for the primary 2D plot
 
 # --- Validation Parameters ---
