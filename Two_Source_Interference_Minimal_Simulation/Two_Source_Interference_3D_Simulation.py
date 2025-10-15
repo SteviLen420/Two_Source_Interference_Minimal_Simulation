@@ -456,7 +456,7 @@ def save_full_summary_json(save_path, grid_size, d, wavelength):
     """
     # Read validation summary if exists
     validation_data = {}
-    summary_file = os.path.join(save_path, '3D_validation_summary.txt')
+    summary_file = os.path.join(save_path, '3D_validation_summary_FIXED.txt')
     if os.path.exists(summary_file):
         with open(summary_file, 'r') as f:
             content = f.read()
