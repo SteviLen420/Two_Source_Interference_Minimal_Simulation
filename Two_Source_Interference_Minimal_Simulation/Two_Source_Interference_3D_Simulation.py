@@ -556,7 +556,7 @@ if __name__ == '__main__':
         
         if find_peaks is not None:
             create_validation_plot_3D(GRID_HALF_SIZE, MAIN_D, MAIN_WAVELENGTH, save_path)
-            generate_validation_table_3D(GRID_HALF_SIZE, save_path)
+            generate_validation_table_3D_FIXED(GRID_HALF_SIZE, save_path)
         else:
             print("\n3D Validation skipped: scipy unavailable.")
         
