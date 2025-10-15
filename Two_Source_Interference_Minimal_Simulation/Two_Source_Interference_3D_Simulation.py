@@ -261,28 +261,42 @@ def create_validation_plot_3D(grid_size, d, wavelength, save_path):
 
 def measure_fringe_spacing_3D(intensity_plane, grid_size):
     """
-    Measure fringe spacing in 3D observation plane.
-    Uses the Z-slice with the highest average intensity for stability.
+    Measure fringe spacing using the CENTRAL REGION where fringes are strongest.
     """
     if find_peaks is None:
         return np.nan
-
-    # Select the Z-slice with the highest mean intensity
-    z_center_idx = np.argmax(np.mean(intensity_plane, axis=1))
-    line = intensity_plane[z_center_idx, :]
-
-    # Define Y coordinates matching array width
-    y_coords = np.linspace(-grid_size, grid_size, intensity_plane.shape[1])
-
-    # Use relaxed prominence for peak detection
-    peaks, _ = find_peaks(line, prominence=line.max() * 0.02)
-
-    # Require at least 3 peaks to compute average spacing
+    
+    # Find best Z slice
+    z_best_idx = np.argmax(np.mean(intensity_plane, axis=1))
+    line = intensity_plane[z_best_idx, :]
+    
+    # CRITICAL FIX: Extract ONLY the central bright region
+    # where fine fringes are visible (ignore diffraction envelope edges)
+    center_idx = len(line) // 2
+    roi_half_width = 300  # Focus on central ±300 pixels
+    
+    line_roi = line[center_idx - roi_half_width : center_idx + roi_half_width]
+    
+    # Detrend to remove slow envelope modulation
+    from scipy.ndimage import gaussian_filter1d
+    envelope = gaussian_filter1d(line_roi, sigma=50)
+    detrended = line_roi / (envelope + 1e-10)
+    
+    # Find peaks on detrended signal
+    peaks, _ = find_peaks(detrended, prominence=0.1, distance=20)
+    
     if len(peaks) < 3:
         return np.nan
-
-    peak_y_coords = y_coords[peaks]
-    return np.mean(np.diff(peak_y_coords))
+    
+    # Map peaks back to Y-coordinates
+    y_coords_roi = np.linspace(-roi_half_width, roi_half_width, len(line_roi))
+    peak_y_coords = y_coords_roi[peaks]
+    
+    # Scale back to grid units (ROI is subset of full grid)
+    scaling_factor = (2 * grid_size) / len(line)
+    spacing_scaled = np.mean(np.diff(peak_y_coords)) * scaling_factor
+    
+    return spacing_scaled
 
 def analytical_fringe_spacing_3D(d, wavelength, L):
     """Same as 2D for small angles: Δy ≈ λL/d"""
