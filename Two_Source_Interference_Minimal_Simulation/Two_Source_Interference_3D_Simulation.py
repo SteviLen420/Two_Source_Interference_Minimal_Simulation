@@ -24,7 +24,7 @@ import json
 # ===================================================================================
 # --- MASTER CONTROL ---
 # ===================================================================================
-GRID_HALF_SIZE = 1000          # 3D grid: much smaller due to memory (100^3 = 1M points)
+GRID_HALF_SIZE = 100          # 3D grid: much smaller due to memory (100^3 = 1M points)
 MAIN_D = 20                   # Source separation
 MAIN_WAVELENGTH = 10.0        # Wavelength
 L_OBSERVATION = 200           # Observation plane distance
