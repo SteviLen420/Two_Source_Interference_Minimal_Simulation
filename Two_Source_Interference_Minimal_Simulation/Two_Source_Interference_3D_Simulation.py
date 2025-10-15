@@ -24,10 +24,10 @@ import json
 # ===================================================================================
 # --- MASTER CONTROL ---
 # ===================================================================================
-GRID_HALF_SIZE = 800          # 3D grid: much smaller due to memory (100^3 = 1M points)
+GRID_HALF_SIZE = 100          # 3D grid: much smaller due to memory (100^3 = 1M points)
 MAIN_D = 60                   # Source separation
 MAIN_WAVELENGTH = 5.0        # Wavelength
-L_OBSERVATION = 720           # Observation plane distance
+L_OBSERVATION = 150           # Observation plane distance
 PEAK_PROMINENCE_THRESHOLD = 0.1
 OUTPUT_BASE_FOLDER = 'Interference_3D_Sims'
 CODE_VERSION = '2.0.0'
@@ -345,6 +345,97 @@ def generate_validation_table_3D(grid_size, save_path):
     
     print("   3D summary saved.")
 
+def save_full_summary_json(save_path, grid_size, d, wavelength):
+    """
+    Save comprehensive JSON summary by reading existing output files.
+    """
+    # Read validation summary if exists
+    validation_data = {}
+    summary_file = os.path.join(save_path, '3D_validation_summary.txt')
+    if os.path.exists(summary_file):
+        with open(summary_file, 'r') as f:
+            content = f.read()
+            
+            # Parse mean error
+            if 'Mean Error:' in content:
+                try:
+                    mean_line = [l for l in content.split('\n') if 'Mean Error:' in l][0]
+                    validation_data['mean_error_percent'] = mean_line.split(':')[1].strip()
+                except:
+                    pass
+            
+            # Parse max error
+            if 'Max Error:' in content:
+                try:
+                    max_line = [l for l in content.split('\n') if 'Max Error:' in l][0]
+                    validation_data['max_error_percent'] = max_line.split(':')[1].strip()
+                except:
+                    pass
+            
+            # Parse pass/fail
+            if 'All errors < 5%:' in content:
+                try:
+                    pass_line = [l for l in content.split('\n') if 'All errors < 5%:' in l][0]
+                    validation_data['all_errors_below_5_percent'] = pass_line.split(':')[1].strip()
+                except:
+                    pass
+            
+            # If no data found, mark as no valid data
+            if not validation_data:
+                validation_data['status'] = 'No valid data'
+    
+    # Read CSV validation table if exists
+    csv_file = os.path.join(save_path, '3D_quantitative_validation_table.csv')
+    if os.path.exists(csv_file):
+        import csv as csv_module
+        with open(csv_file, 'r') as f:
+            reader = csv_module.DictReader(f)
+            validation_data['test_cases'] = list(reader)
+    
+    # List all output files
+    output_files = []
+    if os.path.exists(save_path):
+        output_files = [f for f in os.listdir(save_path) if os.path.isfile(os.path.join(save_path, f))]
+    
+    # Build comprehensive summary
+    full_summary = {
+        'metadata': {
+            'simulation_id': os.path.basename(save_path),
+            'timestamp': datetime.now().isoformat(),
+            'code_version': CODE_VERSION,
+            'dimensionality': '3D'
+        },
+        'simulation_parameters': {
+            'grid_half_size': grid_size,
+            'grid_total_points': (2 * grid_size) ** 3,
+            'source_separation_d': d,
+            'wavelength': wavelength,
+            'observation_plane_distance': L_OBSERVATION,
+            'far_field_criterion': {
+                'd_squared_over_lambda': (d**2) / wavelength,
+                'L_value': L_OBSERVATION,
+                'far_field_satisfied': L_OBSERVATION > (d**2) / wavelength
+            }
+        },
+        'validation': validation_data,
+        'output_files': {
+            'total_count': len(output_files),
+            'files': sorted(output_files)
+        },
+        'computational_info': {
+            'observation_plane_only': True,
+            'full_volume_computed': False,
+            'memory_optimization': 'plane_extraction'
+        }
+    }
+    
+    # Save to JSON
+    summary_filename = os.path.join(save_path, 'full_summary.json')
+    with open(summary_filename, 'w') as f:
+        json.dump(full_summary, f, indent=2)
+    
+    print(f"   Full summary JSON saved.")
+
 if __name__ == '__main__':
     is_colab, drive_path = setup_colab_environment()
 
@@ -363,6 +454,9 @@ if __name__ == '__main__':
             generate_validation_table_3D(GRID_HALF_SIZE, save_path)
         else:
             print("\n3D Validation skipped: scipy unavailable.")
+        
+        # Save full summary JSON at the very end
+        save_full_summary_json(save_path, GRID_HALF_SIZE, MAIN_D, MAIN_WAVELENGTH)
     
     print("\n--- 3D SIMULATION FINISHED ---")
     if save_path:
