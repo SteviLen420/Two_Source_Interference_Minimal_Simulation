@@ -28,7 +28,7 @@ GRID_HALF_SIZE = 1000          # 3D grid: much smaller due to memory (100^3 = 1M
 MAIN_D = 50                   # Source separation
 MAIN_WAVELENGTH = 5.0        # Wavelength
 L_OBSERVATION = 900           # Observation plane distance
-PEAK_PROMINENCE_THRESHOLD = 0.4
+PEAK_PROMINENCE_THRESHOLD = 0.2
 OUTPUT_BASE_FOLDER = 'Interference_3D_Sims'
 CODE_VERSION = '2.0.0'
 # ===================================================================================
