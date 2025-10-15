@@ -21,11 +21,11 @@ import json
 # ===================================================================================
 # --- MASTER CONTROL ---
 # ===================================================================================
-GRID_HALF_SIZE = 600
+GRID_HALF_SIZE = 1000
 MAIN_D = 20
 MAIN_WAVELENGTH = 10.0
-L_OBSERVATION = 400
-PEAK_PROMINENCE_THRESHOLD = 0.3
+L_OBSERVATION = 300
+PEAK_PROMINENCE_THRESHOLD = 0.1
 OUTPUT_BASE_FOLDER = 'Interference_Sims'
 CODE_VERSION = '1.5.0'
 # ===================================================================================
