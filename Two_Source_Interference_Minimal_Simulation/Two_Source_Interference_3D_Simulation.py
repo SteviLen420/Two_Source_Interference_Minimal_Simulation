@@ -408,9 +408,10 @@ def generate_validation_table_3D_FIXED(grid_size, save_path):
             'Error_Pct': f"{error:.2f}%" if not np.isnan(error) else "N/A"
         })
         
-        print(f"   λ={params['wavelength']}: Analytical={analytical:.2f}, " + 
-              f"Measured={measured:.2f if not np.isnan(measured) else 'N/A'}, " +
-              f"Error={error:.2f if not np.isnan(error) else 'N/A'}%")
+        measured_str = f"{measured:.2f}" if not np.isnan(measured) else "N/A"
+        error_str = f"{error:.2f}%" if not np.isnan(error) else "N/A"
+        print(f"   λ={params['wavelength']}: Analytical={analytical:.2f}, "
+              f"Measured={measured_str}, Error={error_str}")
     
     # Save CSV results
     with open(os.path.join(save_path, '3D_quantitative_validation_table_FIXED.csv'), 
