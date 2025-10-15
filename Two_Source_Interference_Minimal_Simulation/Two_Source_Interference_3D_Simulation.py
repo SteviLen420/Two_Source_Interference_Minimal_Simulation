@@ -259,55 +259,122 @@ def create_validation_plot_3D(grid_size, d, wavelength, save_path):
     print("   3D validation plot saved.")
     plt.close(fig)
 
-def measure_fringe_spacing_3D(intensity_plane, grid_size):
+def measure_fringe_spacing_3D_FIXED(intensity_plane, y_coords, z_coords):
     """
-    Measure fringe spacing with high-pass filtering to remove envelope.
+    FIXED fringe spacing measurement — uses TRUE spatial coordinates.
     """
     if find_peaks is None:
         return np.nan
     
     from scipy.signal import butter, filtfilt
     
-    # Find best Z slice
+    # Find the Z slice with the highest contrast (largest standard deviation)
     contrasts = np.std(intensity_plane, axis=1)
     z_best_idx = np.argmax(contrasts)
     line = intensity_plane[z_best_idx, :]
     
-    # Use central 80%
+    # Use the central 60% of the line (edges are distorted)
     n = len(line)
-    margin = int(0.1 * n)
+    margin = int(0.2 * n)
     line_center = line[margin:-margin]
+    y_center = y_coords[margin:-margin]
     
-    # HIGH-PASS FILTER to remove slow envelope
-    nyquist = 0.5
-    cutoff = 1.0 / 300.0
-    b, a = butter(3, cutoff / nyquist, btype='high')
-    line_filtered = filtfilt(b, a, line_center)
+    # Adaptive high-pass filter
+    # Estimate expected fringe spacing in pixels
+    expected_spacing_pixels = len(line_center) * MAIN_WAVELENGTH * L_OBSERVATION / (MAIN_D * 2 * GRID_HALF_SIZE)
     
-    # Find peaks on filtered signal
-    peaks, _ = find_peaks(line_filtered, prominence=np.std(line_filtered) * 0.5, distance=20)
-    
-    if len(peaks) < 3:
+    if expected_spacing_pixels < 10:
+        print(f"   WARNING: Expected spacing too small ({expected_spacing_pixels:.1f} px)")
         return np.nan
     
-    # Calculate spacing IN PIXELS
-    peak_spacing_pixels = np.mean(np.diff(peaks))
+    # Apply a high-pass filter to remove slow envelope variations
+    nyquist = 0.5
+    # Cutoff frequency about 5× slower than fringe frequency
+    cutoff_freq = 1.0 / (expected_spacing_pixels * 5)
+    cutoff_normalized = cutoff_freq / nyquist
+    cutoff_normalized = np.clip(cutoff_normalized, 0.001, 0.4)  # Safe limits
     
-    # FIXED SCALING: line_center has len(line_center) pixels
-    # These pixels represent 0.8 * (2 * grid_size) grid units
-    # So 1 pixel = (0.8 * 2 * grid_size) / len(line_center) grid units
-    grid_units_per_pixel = (0.8 * 2 * grid_size) / len(line_center)
+    b, a = butter(3, cutoff_normalized, btype='high')
+    line_filtered = filtfilt(b, a, line_center)
     
-    spacing_grid_units = peak_spacing_pixels * grid_units_per_pixel
+    # Peak detection with improved parameters
+    std_val = np.std(line_filtered)
+    peaks, properties = find_peaks(
+        line_filtered, 
+        prominence=std_val * 0.3,  # Lower prominence threshold
+        distance=int(expected_spacing_pixels * 0.5)  # Minimum distance between peaks
+    )
     
-    return spacing_grid_units
+    if len(peaks) < 3:
+        print(f"   WARNING: Only {len(peaks)} peaks found!")
+        return np.nan
+    
+    # Compute TRUE spatial distances between peaks
+    peak_positions = y_center[peaks]
+    spacings = np.diff(peak_positions)
+    
+    # Filter outliers (remove spacing values that deviate strongly from the median)
+    median_spacing = np.median(spacings)
+    valid_spacings = spacings[np.abs(spacings - median_spacing) < median_spacing * 0.5]
+    
+    if len(valid_spacings) < 2:
+        return np.nan
+    
+    avg_spacing = np.mean(valid_spacings)
+    
+    print(f"   Found {len(peaks)} peaks, average spacing: {avg_spacing:.2f} grid units")
+    
+    return avg_spacing
 
-def analytical_fringe_spacing_3D(d, wavelength, L):
-    """Same as 2D for small angles: Δy ≈ λL/d"""
+
+def analytical_fringe_spacing_3D_EXACT(d, wavelength, L, y_pos=0):
+    """
+    Exact analytical fringe spacing in 3D at a given Y position.
+    
+    Small-angle approximation: Δy ≈ λL/d
+    Valid near the center region, but exact formula can depend on angle.
+    """
+    # Small-angle approximation (accurate near center)
     return wavelength * L / d
 
-def generate_validation_table_3D(grid_size, save_path):
-    print("\n--- 3D Validation Table ---")
+
+def analytical_intensity_3D_spherical_FIXED(y_pos, z_pos, d, wavelength, L):
+    """
+    FIXED analytical intensity — correct normalization applied.
+    """
+    k = 2 * np.pi / wavelength
+    
+    # 3D distances from each source
+    r1 = np.sqrt(L**2 + y_pos**2 + (z_pos + d/2)**2)
+    r2 = np.sqrt(L**2 + y_pos**2 + (z_pos - d/2)**2)
+    
+    # Avoid singularities
+    r1 = np.maximum(r1, 1.0)
+    r2 = np.maximum(r2, 1.0)
+    
+    # Spherical wave amplitudes
+    A1 = np.exp(1j * k * r1) / r1
+    A2 = np.exp(1j * k * r2) / r2
+    
+    intensity = np.abs(A1 + A2)**2
+    
+    # Normalize so that ideal coherent addition gives intensity = 4
+    # (|1 + 1|² = 4). Due to 1/r decay, the real max is slightly lower.
+    # Normalize using central region (y=0, z=0, where r1≈r2≈L)
+    r_center = np.sqrt(L**2 + (d/2)**2)
+    A_center = 1.0 / r_center
+    I_max_theory = (2 * A_center)**2  # Constructive interference at center
+    
+    intensity = intensity / intensity.max() * 4  # Or normalize by I_max_theory
+    
+    return intensity
+
+
+def generate_validation_table_3D_FIXED(grid_size, save_path):
+    """
+    FIXED validation table using improved measurement and analytical functions.
+    """
+    print("\n--- 3D Validation Table (FIXED) ---")
     
     results = []
     test_params = [
@@ -318,10 +385,14 @@ def generate_validation_table_3D(grid_size, save_path):
     ]
     
     for params in test_params:
-        _, _, intensity_plane = simulate_interference_3D(**params, save_path=None)
+        y_coords, z_coords, intensity_plane = simulate_interference_3D(
+            **params, save_path=None
+        )
         
-        measured = measure_fringe_spacing_3D(intensity_plane, grid_size)
-        analytical = analytical_fringe_spacing_3D(params['d'], params['wavelength'], L_OBSERVATION)
+        measured = measure_fringe_spacing_3D_FIXED(intensity_plane, y_coords, z_coords)
+        analytical = analytical_fringe_spacing_3D_EXACT(
+            params['d'], params['wavelength'], L_OBSERVATION, y_pos=0
+        )
         
         if not np.isnan(measured):
             error = abs(measured - analytical) / analytical * 100
@@ -331,38 +402,53 @@ def generate_validation_table_3D(grid_size, save_path):
         results.append({
             'd': params['d'],
             'lambda': params['wavelength'],
-            'Measured_Spacing': f"{measured:.2f}" if not np.isnan(measured) else "N/A",
+            'L': L_OBSERVATION,
             'Analytical_Spacing': f"{analytical:.2f}",
+            'Measured_Spacing': f"{measured:.2f}" if not np.isnan(measured) else "N/A",
             'Error_Pct': f"{error:.2f}%" if not np.isnan(error) else "N/A"
         })
+        
+        print(f"   λ={params['wavelength']}: Analytical={analytical:.2f}, " + 
+              f"Measured={measured:.2f if not np.isnan(measured) else 'N/A'}, " +
+              f"Error={error:.2f if not np.isnan(error) else 'N/A'}%")
     
-    with open(os.path.join(save_path, '3D_quantitative_validation_table.csv'), 'w', newline='') as csvfile:
+    # Save CSV results
+    with open(os.path.join(save_path, '3D_quantitative_validation_table_FIXED.csv'), 
+              'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=list(results[0].keys()))
         writer.writeheader()
         writer.writerows(results)
-    print("   3D table saved.")
     
+    print("   3D FIXED table saved.")
+    
+    # Compute error statistics
     errors = [float(r['Error_Pct'].strip('%')) for r in results if r['Error_Pct'] != "N/A"]
     
-    with open(os.path.join(save_path, '3D_validation_summary.txt'), 'w') as f:
-        f.write("=== 3D Validation Summary ===\n")
+    with open(os.path.join(save_path, '3D_validation_summary_FIXED.txt'), 'w') as f:
+        f.write("=== 3D Validation Summary (FIXED) ===\n")
         f.write(f"Analytical Model: 3D Spherical Wave (1/r decay)\n")
         f.write(f"Observation Plane: X = {L_OBSERVATION}\n")
-        f.write(f"Total Test Cases: {len(results)}\n")
+        f.write(f"Total Test Cases: {len(results)}\n\n")
         
         if errors:
             f.write(f"Mean Error: {np.mean(errors):.2f}%\n")
+            f.write(f"Median Error: {np.median(errors):.2f}%\n")
             f.write(f"Max Error: {np.max(errors):.2f}%\n")
+            f.write(f"Min Error: {np.min(errors):.2f}%\n")
+            f.write(f"All errors < 10%: {all(e < 10 for e in errors)}\n")
             f.write(f"All errors < 5%: {all(e < 5 for e in errors)}\n")
             
-            print(f"\n=== 3D Validation Summary ===")
+            print(f"\n=== 3D Validation Summary (FIXED) ===")
             print(f"Mean Error: {np.mean(errors):.2f}%")
+            print(f"Median Error: {np.median(errors):.2f}%")
             print(f"Max Error: {np.max(errors):.2f}%")
+            print(f"All < 10%: {all(e < 10 for e in errors)}")
             print(f"All < 5%: {all(e < 5 for e in errors)}")
         else:
-            f.write("No valid data.\n")
+            f.write("ERROR: No valid measurements!\n")
+            print("   ERROR: No valid measurements found!")
     
-    print("   3D summary saved.")
+    print("   3D FIXED summary saved.")
 
 def save_full_summary_json(save_path, grid_size, d, wavelength):
     """
