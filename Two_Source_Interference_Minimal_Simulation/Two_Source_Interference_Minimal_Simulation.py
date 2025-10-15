@@ -119,9 +119,6 @@ def simulate_interference(grid_size, d, wavelength, save_path=None):
     intensity = np.abs(total_field)**2
     
     # FIXED: Normalize to remove envelope mismatch
-    edge_region = intensity[int(grid_size*0.8):, :]
-    if edge_region.size > 0 and np.mean(edge_region) > 0:
-        intensity = intensity / np.mean(edge_region)
     intensity = intensity / intensity.max() * 4
 
     if save_path:
