@@ -262,27 +262,26 @@ def create_validation_plot_3D(grid_size, d, wavelength, save_path):
 def measure_fringe_spacing_3D(intensity_plane, grid_size):
     """
     Measure fringe spacing in 3D observation plane.
-    Selects the Z-slice with highest average intensity for better detection.
+    Uses the Z-slice with the highest average intensity for stability.
     """
     if find_peaks is None:
         return np.nan
-    
-    # Select the Z-slice with the highest average intensity
-    z_best_idx = np.argmax(np.mean(intensity_plane, axis=1))
-    line = intensity_plane[z_best_idx, :]
-    
-    # Create Y-coordinate vector matching the array size
+
+    # Select the Z-slice with the highest mean intensity
+    z_center_idx = np.argmax(np.mean(intensity_plane, axis=1))
+    line = intensity_plane[z_center_idx, :]
+
+    # Define Y coordinates matching array width
     y_coords = np.linspace(-grid_size, grid_size, intensity_plane.shape[1])
-    
-    # Use relaxed prominence threshold
+
+    # Use relaxed prominence for peak detection
     peaks, _ = find_peaks(line, prominence=line.max() * 0.02)
-    
+
+    # Require at least 3 peaks to compute average spacing
     if len(peaks) < 3:
         return np.nan
-    
-    # Convert peak indices to Y positions
+
     peak_y_coords = y_coords[peaks]
-    
     return np.mean(np.diff(peak_y_coords))
 
 def analytical_fringe_spacing_3D(d, wavelength, L):
