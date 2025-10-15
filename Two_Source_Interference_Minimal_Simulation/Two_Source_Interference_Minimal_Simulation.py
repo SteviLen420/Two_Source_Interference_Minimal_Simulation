@@ -203,22 +203,55 @@ def create_validation_plot(grid_size, d, wavelength, save_path):
 def measure_fringe_spacing(intensity_2d, grid_size):
     if find_peaks is None:
         return np.nan
-    
+
     x_coords = np.arange(-grid_size, grid_size, 1)
     y_coords = np.arange(-grid_size, grid_size, 1)
-    
+
+    # Select the cross-section at X = L_OBSERVATION
     x_idx = np.argmin(np.abs(x_coords - L_OBSERVATION))
     if x_idx >= intensity_2d.shape[1]:
         return np.nan
-    
-    numerical = intensity_2d[:, x_idx]
-    peaks, _ = find_peaks(numerical, prominence=numerical.max() * PEAK_PROMINENCE_THRESHOLD)
-    
-    if len(peaks) < 3:
+
+    # Extract raw intensity line
+    line = intensity_2d[:, x_idx].astype(np.float64)
+
+    # Envelope correction: approximate the intensity envelope 
+    # using the sum of 1/r^2 from both point sources
+    L = x_coords[x_idx]
+    d = MAIN_D
+    r1 = np.sqrt(L**2 + (y_coords + d/2.0)**2)
+    r2 = np.sqrt(L**2 + (y_coords - d/2.0)**2)
+    envelope = (1.0 / r1**2) + (1.0 / r2**2)
+    envelope /= envelope.max()
+    corrected = line / envelope
+
+    # Detrend: remove slowly varying background using moving average
+    win = 41  # odd number of samples
+    pad = win // 2
+    ma = np.convolve(corrected, np.ones(win)/win, mode='same')
+    detr = corrected / np.maximum(ma, 1e-12)
+
+    # FFT-based spatial frequency estimation
+    sig = detr - np.mean(detr)
+    n = len(sig)
+    yf = np.fft.rfft(sig * np.hanning(n))
+    xf = np.fft.rfftfreq(n, d=1.0)  # grid spacing = 1
+    # Skip DC component, find dominant carrier frequency
+    idx = np.argmax(np.abs(yf[1:])) + 1
+    if xf[idx] <= 0:
         return np.nan
-    
-    peak_y_coords = y_coords[peaks]
-    return np.mean(np.diff(peak_y_coords))
+    spacing_fft = 1.0 / xf[idx]
+
+    # Peak-based backup estimate
+    peaks, _ = find_peaks(detr, prominence=np.max(detr)*0.1, distance=10)
+    spacing_pk = np.nan
+    if len(peaks) >= 3:
+        spacing_pk = float(np.mean(np.diff(y_coords[peaks])))
+
+    # Combine FFT and peak-based estimates (if both available)
+    if not np.isnan(spacing_pk):
+        return 0.5*spacing_fft + 0.5*spacing_pk
+    return spacing_fft
 
 def analytical_fringe_spacing_cylindrical(d, wavelength, L):
     return wavelength * L / d
