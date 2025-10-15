@@ -261,42 +261,47 @@ def create_validation_plot_3D(grid_size, d, wavelength, save_path):
 
 def measure_fringe_spacing_3D(intensity_plane, grid_size):
     """
-    Measure fringe spacing using the CENTRAL REGION where fringes are strongest.
+    Measure fringe spacing using FFT-based frequency analysis.
+    More robust than peak detection for noisy/envelope-modulated signals.
     """
     if find_peaks is None:
         return np.nan
     
-    # Find best Z slice
-    z_best_idx = np.argmax(np.mean(intensity_plane, axis=1))
+    # Find best Z slice (highest contrast)
+    contrasts = np.std(intensity_plane, axis=1)
+    z_best_idx = np.argmax(contrasts)
     line = intensity_plane[z_best_idx, :]
     
-    # CRITICAL FIX: Extract ONLY the central bright region
-    # where fine fringes are visible (ignore diffraction envelope edges)
-    center_idx = len(line) // 2
-    roi_half_width = 300  # Focus on central ±300 pixels
+    # Use central 80% to avoid edge effects
+    n = len(line)
+    margin = int(0.1 * n)
+    line_center = line[margin:-margin]
     
-    line_roi = line[center_idx - roi_half_width : center_idx + roi_half_width]
+    # Remove DC component and apply window
+    line_center = line_center - np.mean(line_center)
+    window = np.hanning(len(line_center))
+    line_windowed = line_center * window
     
-    # Detrend to remove slow envelope modulation
-    from scipy.ndimage import gaussian_filter1d
-    envelope = gaussian_filter1d(line_roi, sigma=50)
-    detrended = line_roi / (envelope + 1e-10)
+    # FFT to find dominant spatial frequency
+    fft = np.fft.rfft(line_windowed)
+    freqs = np.fft.rfftfreq(len(line_windowed), d=1.0)  # d=1.0 because grid spacing = 1
     
-    # Find peaks on detrended signal
-    peaks, _ = find_peaks(detrended, prominence=0.1, distance=20)
+    # Find peak in frequency domain (skip DC at index 0)
+    power = np.abs(fft[1:])**2
+    peak_freq_idx = np.argmax(power) + 1
     
-    if len(peaks) < 3:
+    if freqs[peak_freq_idx] == 0:
         return np.nan
     
-    # Map peaks back to Y-coordinates
-    y_coords_roi = np.linspace(-roi_half_width, roi_half_width, len(line_roi))
-    peak_y_coords = y_coords_roi[peaks]
+    # Convert frequency to spacing in grid units
+    spacing_pixels = 1.0 / freqs[peak_freq_idx]
     
-    # Scale back to grid units (ROI is subset of full grid)
-    scaling_factor = (2 * grid_size) / len(line)
-    spacing_scaled = np.mean(np.diff(peak_y_coords)) * scaling_factor
+    # Scale from pixel spacing to grid units
+    # line_center covers 80% of grid → 0.8 * 2 * grid_size
+    pixels_per_grid_unit = len(line_center) / (0.8 * 2 * grid_size)
+    spacing_grid_units = spacing_pixels / pixels_per_grid_unit
     
-    return spacing_scaled
+    return spacing_grid_units
 
 def analytical_fringe_spacing_3D(d, wavelength, L):
     """Same as 2D for small angles: Δy ≈ λL/d"""
