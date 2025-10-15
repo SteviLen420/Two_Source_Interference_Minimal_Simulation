@@ -261,45 +261,42 @@ def create_validation_plot_3D(grid_size, d, wavelength, save_path):
 
 def measure_fringe_spacing_3D(intensity_plane, grid_size):
     """
-    Measure fringe spacing using FFT-based frequency analysis.
-    More robust than peak detection for noisy/envelope-modulated signals.
+    Measure fringe spacing with high-pass filtering to remove envelope.
     """
     if find_peaks is None:
         return np.nan
     
-    # Find best Z slice (highest contrast)
+    from scipy.signal import butter, filtfilt
+    
+    # Find best Z slice
     contrasts = np.std(intensity_plane, axis=1)
     z_best_idx = np.argmax(contrasts)
     line = intensity_plane[z_best_idx, :]
     
-    # Use central 80% to avoid edge effects
+    # Use central 80%
     n = len(line)
     margin = int(0.1 * n)
     line_center = line[margin:-margin]
     
-    # Remove DC component and apply window
-    line_center = line_center - np.mean(line_center)
-    window = np.hanning(len(line_center))
-    line_windowed = line_center * window
+    # HIGH-PASS FILTER to remove slow envelope
+    # Cutoff: remove periods longer than ~300 pixels
+    nyquist = 0.5  # Sampling rate = 1 pixel
+    cutoff = 1.0 / 300.0  # Remove wavelengths > 300 pixels
+    b, a = butter(3, cutoff / nyquist, btype='high')
+    line_filtered = filtfilt(b, a, line_center)
     
-    # FFT to find dominant spatial frequency
-    fft = np.fft.rfft(line_windowed)
-    freqs = np.fft.rfftfreq(len(line_windowed), d=1.0)  # d=1.0 because grid spacing = 1
+    # Find peaks on filtered signal
+    peaks, _ = find_peaks(line_filtered, prominence=np.std(line_filtered) * 0.5, distance=20)
     
-    # Find peak in frequency domain (skip DC at index 0)
-    power = np.abs(fft[1:])**2
-    peak_freq_idx = np.argmax(power) + 1
-    
-    if freqs[peak_freq_idx] == 0:
+    if len(peaks) < 3:
         return np.nan
     
-    # Convert frequency to spacing in grid units
-    spacing_pixels = 1.0 / freqs[peak_freq_idx]
+    # Calculate spacing
+    peak_spacing_pixels = np.mean(np.diff(peaks))
     
-    # Scale from pixel spacing to grid units
-    # line_center covers 80% of grid → 0.8 * 2 * grid_size
+    # Convert to grid units
     pixels_per_grid_unit = len(line_center) / (0.8 * 2 * grid_size)
-    spacing_grid_units = spacing_pixels / pixels_per_grid_unit
+    spacing_grid_units = peak_spacing_pixels / pixels_per_grid_unit
     
     return spacing_grid_units
 
