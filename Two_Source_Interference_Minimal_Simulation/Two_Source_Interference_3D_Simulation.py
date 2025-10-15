@@ -279,9 +279,8 @@ def measure_fringe_spacing_3D(intensity_plane, grid_size):
     line_center = line[margin:-margin]
     
     # HIGH-PASS FILTER to remove slow envelope
-    # Cutoff: remove periods longer than ~300 pixels
-    nyquist = 0.5  # Sampling rate = 1 pixel
-    cutoff = 1.0 / 300.0  # Remove wavelengths > 300 pixels
+    nyquist = 0.5
+    cutoff = 1.0 / 300.0
     b, a = butter(3, cutoff / nyquist, btype='high')
     line_filtered = filtfilt(b, a, line_center)
     
