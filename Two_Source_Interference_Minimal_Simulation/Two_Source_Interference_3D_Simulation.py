@@ -26,8 +26,8 @@ import json
 # ===================================================================================
 GRID_HALF_SIZE = 100          # 3D grid: much smaller due to memory (100^3 = 1M points)
 MAIN_D = 20                   # Source separation
-MAIN_WAVELENGTH = 10.0        # Wavelength
-L_OBSERVATION = 200           # Observation plane distance
+MAIN_WAVELENGTH = 5.0        # Wavelength
+L_OBSERVATION = 80           # Observation plane distance
 PEAK_PROMINENCE_THRESHOLD = 0.1
 OUTPUT_BASE_FOLDER = 'Interference_3D_Sims'
 CODE_VERSION = '2.0.0'
