@@ -148,25 +148,19 @@ def simulate_interference(grid_size, d, wavelength, save_path=None):
     return x, y, intensity
 
 def analytical_intensity_cylindrical(y_pos, d, wavelength, L):
-    """2D cylindrical waves with matched normalization"""
+    """2D cylindrical waves with matched normalization (corrected)"""
     k = 2 * np.pi / wavelength
-    
+
     r1 = np.sqrt(L**2 + (y_pos + d/2)**2)
     r2 = np.sqrt(L**2 + (y_pos - d/2)**2)
-    
-    # 2D cylindrical waves: amplitude ∝ 1/r
-    A1 = np.exp(1j * k * r1) / r1
-    A2 = np.exp(1j * k * r2) / r2
-    
+
+    # FIX: amplitude ∝ 1/sqrt(r) for quasi-2D propagation
+    A1 = np.exp(1j * k * r1) / np.sqrt(r1)
+    A2 = np.exp(1j * k * r2) / np.sqrt(r2)
+
     intensity = np.abs(A1 + A2)**2
-    
-    # FIXED: Match numerical normalization
-    edge_idx = int(0.8 * len(intensity))
-    edge_region = intensity[edge_idx:]
-    if edge_region.size > 0 and np.mean(edge_region) > 0:
-        intensity = intensity / np.mean(edge_region)
-    intensity = intensity / intensity.max() * 4
-    
+    intensity /= intensity.max()
+    intensity *= 4
     return intensity
 
 def create_validation_plot(grid_size, d, wavelength, save_path):
