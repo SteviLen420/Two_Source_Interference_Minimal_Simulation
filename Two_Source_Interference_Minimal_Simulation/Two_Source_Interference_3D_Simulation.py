@@ -290,12 +290,15 @@ def measure_fringe_spacing_3D(intensity_plane, grid_size):
     if len(peaks) < 3:
         return np.nan
     
-    # Calculate spacing
+    # Calculate spacing IN PIXELS
     peak_spacing_pixels = np.mean(np.diff(peaks))
     
-    # Convert to grid units
-    pixels_per_grid_unit = len(line_center) / (0.8 * 2 * grid_size)
-    spacing_grid_units = peak_spacing_pixels / pixels_per_grid_unit
+    # FIXED SCALING: line_center has len(line_center) pixels
+    # These pixels represent 0.8 * (2 * grid_size) grid units
+    # So 1 pixel = (0.8 * 2 * grid_size) / len(line_center) grid units
+    grid_units_per_pixel = (0.8 * 2 * grid_size) / len(line_center)
+    
+    spacing_grid_units = peak_spacing_pixels * grid_units_per_pixel
     
     return spacing_grid_units
 
