@@ -24,10 +24,10 @@ import json
 # ===================================================================================
 # --- MASTER CONTROL ---
 # ===================================================================================
-GRID_HALF_SIZE = 1000          # 3D grid: much smaller due to memory (100^3 = 1M points)
+GRID_HALF_SIZE = 900          # 3D grid: much smaller due to memory (100^3 = 1M points)
 MAIN_D = 50                   # Source separation
 MAIN_WAVELENGTH = 5.0        # Wavelength
-L_OBSERVATION = 900           # Observation plane distance
+L_OBSERVATION = 2000           # Observation plane distance
 PEAK_PROMINENCE_THRESHOLD = 0.2
 OUTPUT_BASE_FOLDER = 'Interference_3D_Sims'
 CODE_VERSION = '2.0.0'
@@ -302,7 +302,7 @@ def measure_fringe_spacing_3D_FIXED(intensity_plane, y_coords, z_coords):
     peaks, properties = find_peaks(
         line_filtered, 
         prominence=std_val * 0.3,  # Lower prominence threshold
-        distance=int(expected_spacing_pixels * 0.5)  # Minimum distance between peaks
+        distance=int(expected_spacing_pixels * 0.3)  # Minimum distance between peaks
     )
     
     if len(peaks) < 3:
