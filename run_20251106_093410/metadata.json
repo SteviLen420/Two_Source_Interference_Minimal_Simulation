@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-11-06T09:34:10.451638",
+  "code_version": "2.1.0",
+  "simulation_parameters": {
+    "grid_half_size": 800,
+    "source_separation_d": 50,
+    "wavelength": 10.0,
+    "dimensionality": "3D"
+  },
+  "validation_parameters": {
+    "observation_plane_distance": 800,
+    "peak_detection_prominence_threshold": 0.2,
+    "analytical_model": "3D_spherical_wave_1_over_r"
+  }
+}

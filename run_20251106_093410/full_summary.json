@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "simulation_id": "run_20251106_093410",
+    "timestamp": "2025-11-06T09:34:16.468711",
+    "code_version": "2.1.0",
+    "dimensionality": "3D"
+  },
+  "simulation_parameters": {
+    "grid_half_size": 800,
+    "grid_total_points": 4096000000,
+    "source_separation_d": 50,
+    "wavelength": 10.0,
+    "observation_plane_distance": 800,
+    "far_field_criterion": {
+      "d_squared_over_lambda": 250.0,
+      "L_value": 800,
+      "far_field_satisfied": true
+    }
+  },
+  "validation": {
+    "mean_error_percent": "3.77%",
+    "max_error_percent": "4.69%",
+    "all_errors_below_5_percent": "True"
+  },
+  "output_files": {
+    "total_count": 7,
+    "files": [
+      "3D_cross_section_d50_l10.0.png",
+      "3D_intensity_plane_d50_l10.0.csv",
+      "3D_obs_plane_d50_l10.0.png",
+      "3D_quantitative_validation_table_FIXED.csv",
+      "3D_validation_plot.png",
+      "3D_validation_summary_FIXED.txt",
+      "metadata.json"
+    ]
+  },
+  "computational_info": {
+    "observation_plane_only": true,
+    "full_volume_computed": false,
+    "memory_optimization": "plane_extraction"
+  }
+}

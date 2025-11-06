@@ -1,0 +1,11 @@
+=== 3D Validation Summary (FIXED) ===
+Analytical Model: 3D Spherical Wave (1/r decay)
+Observation Plane: X = 800
+Total Test Cases: 4
+
+Mean Error: 3.77%
+Median Error: 3.87%
+Max Error: 4.69%
+Min Error: 2.67%
+All errors < 10%: True
+All errors < 5%: True
