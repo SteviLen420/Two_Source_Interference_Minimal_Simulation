@@ -8,7 +8,7 @@ authors:
 title: "Numerical Validation of Two-Source Wave Interference in Three Dimensions: A Reproducible Computational Framework"
 version: 1.0
 date-released: 2025-01-XX
-doi: 10.5281/zenodo.XXXXXXX
+doi: 10.5281/zenodo.17541700
 url: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 repository-code: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 license: MIT

@@ -404,7 +404,7 @@ All simulation data, including:
 - High-resolution figures (PNG, 300 DPI)
 - Simulation metadata (`metadata.json`, `full_summary.json`)
 
-are available at the associated GitHub repository.
+are available at the associated GitHub repository and archived on Zenodo: https://doi.org/10.5281/zenodo.17541700
 
 ---
 
@@ -423,7 +423,7 @@ authors:
 title: "Numerical Validation of Two-Source Wave Interference in Three Dimensions: A Reproducible Computational Framework"
 version: 1.0
 date-released: 2025-01-XX
-doi: 10.5281/zenodo.XXXXXXX
+doi: 10.5281/zenodo.17541700
 url: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 repository-code: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 license: MIT
@@ -447,7 +447,8 @@ The complete `CITATION.cff` file is available in the GitHub repository root dire
 **Word Count:** ~4,200  
 **Figures:** 3  
 **Code Availability:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation/blob/main/Two_Source_Interference_Minimal_Simulation/Two_Source_Interference_3D_Simulation.py  
-**Data Availability:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
+**Data Availability:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation  
+**DOI:** https://doi.org/10.5281/zenodo.17541700
 
 ---
 
