@@ -337,7 +337,7 @@ The simulation was implemented in Python 3.8+ using:
 - SciPy 1.7+ for peak detection algorithms
 - Standard library modules for I/O and metadata management
 
-The complete source code is available at: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
+The complete source code is available at: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation/blob/main/Two_Source_Interference_Minimal_Simulation/Two_Source_Interference_3D_Simulation.py
 
 ### A.2 Algorithm Overview
 
@@ -446,7 +446,7 @@ The complete `CITATION.cff` file is available in the GitHub repository root dire
 **Manuscript Version:** 1.0  
 **Word Count:** ~4,200  
 **Figures:** 3  
-**Code Availability:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation  
+**Code Availability:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation/blob/main/Two_Source_Interference_Minimal_Simulation/Two_Source_Interference_3D_Simulation.py  
 **Data Availability:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 
 ---
