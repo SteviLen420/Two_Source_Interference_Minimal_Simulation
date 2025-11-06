@@ -50,7 +50,7 @@ This three-dimensional treatment is essential for accurate simulation of interfe
 
 ### 1.3 Computational Approach and Objectives
 
-Numerical simulation of wave interference provides a powerful tool for both educational demonstration and quantitative validation of theoretical predictions. This work presents a minimal computational framework that:
+Numerical simulation of wave interference provides a powerful tool for both educational demonstration and quantitative validation of theoretical predictions. I present a minimal computational framework that:
 
 1. Implements three-dimensional spherical wave propagation from two coherent point sources
 2. Computes interference patterns on a specified observation plane
@@ -192,7 +192,7 @@ The numerical simulations were conducted with the following parameters:
 
 **Observation Plane:**
 - Distance from sources: $L = 800$ (grid units)
-- Far-field criterion: $d^2/\lambda = 250$, $L = 800 > 250$ ✓ (far-field satisfied)
+- Far-field criterion: $d^2/\lambda = 250$, $L = 800 > 250$ \checkmark (far-field satisfied)
 
 **Validation Parameters:**
 - Number of test cases: 4
@@ -251,8 +251,8 @@ Based on the `3D_quantitative_validation_table_FIXED.csv` data:
 - Median error: 3.87%
 - Maximum error: 4.69%
 - Minimum error: 2.67%
-- All errors < 5%: ✓
-- All errors < 10%: ✓
+- All errors < 5%: \checkmark
+- All errors < 10%: \checkmark
 
 ### 4.3 Discussion
 
@@ -295,9 +295,9 @@ Through a minimal but rigorous numerical implementation, I have demonstrated acc
 
 5. **Accessibility**: The code is designed for cloud execution (Google Colab), making it accessible for educational use without local computational resources.
 
-This work demonstrates that straightforward numerical methods can provide accurate simulation of classical wave interference phenomena. The validated framework serves as both an educational tool and a methodological foundation for more advanced wave propagation studies, including extensions to time-dependent sources, partial coherence, or three-dimensional volume calculations.
+I demonstrate that straightforward numerical methods can provide accurate simulation of classical wave interference phenomena. The validated framework serves as both an educational tool and a methodological foundation for more advanced wave propagation studies, including extensions to time-dependent sources, partial coherence, or three-dimensional volume calculations.
 
-The reproducible Python implementation and clear visualizations make this study a valuable resource for computational physics education. Students and researchers can directly explore one of classical physics' most fundamental wave phenomena, observing the quantitative agreement between numerical simulation and analytical theory.
+The reproducible Python implementation and clear visualizations make this work a valuable resource for computational physics education. Students and researchers can directly explore one of classical physics' most fundamental wave phenomena, observing the quantitative agreement between numerical simulation and analytical theory.
 
 Future extensions could investigate near-field interference effects, time-dependent source modulation, partial coherence effects, or extensions to multiple sources or extended source distributions. The computational framework demonstrated here provides a solid foundation for such advanced studies.
 
@@ -305,7 +305,7 @@ Future extensions could investigate near-field interference effects, time-depend
 
 ## Acknowledgments
 
-The author thanks the open-source scientific Python community (NumPy, Matplotlib, SciPy) for providing the computational tools that enabled this work. This research was conducted independently without external funding.
+I thank the open-source scientific Python community (NumPy, Matplotlib, SciPy) for providing the computational tools that enabled this work. This research was conducted independently without external funding.
 
 ---
 
@@ -337,7 +337,7 @@ The simulation was implemented in Python 3.8+ using:
 - SciPy 1.7+ for peak detection algorithms
 - Standard library modules for I/O and metadata management
 
-The complete source code is available at: [GitHub repository URL]
+The complete source code is available at: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 
 ### A.2 Algorithm Overview
 
@@ -408,11 +408,46 @@ are available at the associated GitHub repository.
 
 ---
 
+## Appendix C: Citation Information
+
+This work can be cited using the following CITATION.cff format (I provide this citation information):
+
+```yaml
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Len
+    given-names: Stefan
+    affiliation: Independent Researcher
+    email: tqe.simulation@gmail.com
+title: "Numerical Validation of Two-Source Wave Interference in Three Dimensions: A Reproducible Computational Framework"
+version: 1.0
+date-released: 2025-01-XX
+doi: 10.5281/zenodo.XXXXXXX
+url: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
+repository-code: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
+license: MIT
+keywords:
+  - wave interference
+  - two-source interference
+  - Young's experiment
+  - wave optics
+  - numerical simulation
+  - computational physics
+  - validation
+  - pedagogical tool
+abstract: "A rigorously validated computational framework for simulating and analyzing classical two-source wave interference patterns with quantitative comparison to analytical solutions. The simulation implements coherent superposition of two monochromatic point sources using spherical wave propagation in three dimensions. Includes automated validation metrics demonstrating mean errors below 4% when compared to analytical far-field predictions."
+```
+
+The complete `CITATION.cff` file is available in the GitHub repository root directory.
+
+---
+
 **Manuscript Version:** 1.0  
 **Word Count:** ~4,200  
 **Figures:** 3  
-**Code Availability:** GitHub [repository URL](https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation)  
-**Data Availability:** GitHub repository
+**Code Availability:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation  
+**Data Availability:** https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
 
 ---
 

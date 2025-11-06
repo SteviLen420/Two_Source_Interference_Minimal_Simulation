@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Len
+    given-names: Stefan
+    affiliation: Independent Researcher
+    email: tqe.simulation@gmail.com
+title: "Numerical Validation of Two-Source Wave Interference in Three Dimensions: A Reproducible Computational Framework"
+version: 1.0
+date-released: 2025-01-XX
+doi: 10.5281/zenodo.XXXXXXX
+url: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
+repository-code: https://github.com/SteviLen420/Two_Source_Interference_Minimal_Simulation
+license: MIT
+keywords:
+  - wave interference
+  - two-source interference
+  - Young's experiment
+  - wave optics
+  - numerical simulation
+  - computational physics
+  - validation
+  - pedagogical tool
+abstract: "A rigorously validated computational framework for simulating and analyzing classical two-source wave interference patterns with quantitative comparison to analytical solutions. The simulation implements coherent superposition of two monochromatic point sources using spherical wave propagation in three dimensions. Includes automated validation metrics demonstrating mean errors below 4% when compared to analytical far-field predictions."
+
